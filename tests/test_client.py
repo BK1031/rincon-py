@@ -4,7 +4,6 @@ from pytest_httpx import HTTPXMock
 from rincon import (
     RinconAuthError,
     RinconClient,
-    RinconConnectionError,
     RinconConflictError,
     RinconError,
     RinconNotFoundError,
@@ -16,7 +15,9 @@ from tests.conftest import SAMPLE_PING, SAMPLE_ROUTE, SAMPLE_SERVICE
 
 class TestPing:
     def test_ping(self, client: RinconClient, httpx_mock: HTTPXMock):
-        httpx_mock.add_response(url="http://localhost:10311/rincon/ping", json=SAMPLE_PING)
+        httpx_mock.add_response(
+            url="http://localhost:10311/rincon/ping", json=SAMPLE_PING
+        )
         ping = client.ping()
         assert ping.message == "Rincon v2.2.0 is online!"
         assert ping.services == 2
@@ -56,7 +57,9 @@ class TestGetServices:
             status_code=404,
             json={"message": "No service with id 999999 found"},
         )
-        with pytest.raises(RinconNotFoundError, match="No service with id 999999 found"):
+        with pytest.raises(
+            RinconNotFoundError, match="No service with id 999999 found"
+        ):
             client.get_service_by_id(999999)
 
 
@@ -77,7 +80,9 @@ class TestRegisterService:
         assert result.id == 820522
         assert result.name == "service_a"
 
-    def test_register_service_auth_failure(self, client: RinconClient, httpx_mock: HTTPXMock):
+    def test_register_service_auth_failure(
+        self, client: RinconClient, httpx_mock: HTTPXMock
+    ):
         httpx_mock.add_response(
             url="http://localhost:10311/rincon/services",
             method="POST",
@@ -93,7 +98,9 @@ class TestRegisterService:
         with pytest.raises(RinconAuthError, match="Invalid credentials"):
             client.register_service(svc)
 
-    def test_register_service_validation_error(self, client: RinconClient, httpx_mock: HTTPXMock):
+    def test_register_service_validation_error(
+        self, client: RinconClient, httpx_mock: HTTPXMock
+    ):
         httpx_mock.add_response(
             url="http://localhost:10311/rincon/services",
             method="POST",
@@ -156,11 +163,15 @@ class TestMatchRoute:
         assert svc.name == "service_a"
         assert svc.endpoint == "http://localhost:8080"
 
-    def test_match_route_strips_leading_slash(self, client: RinconClient, httpx_mock: HTTPXMock):
+    def test_match_route_strips_leading_slash(
+        self, client: RinconClient, httpx_mock: HTTPXMock
+    ):
         httpx_mock.add_response(json=SAMPLE_SERVICE)
         client.match_route("/users/123", "GET")
         request = httpx_mock.get_requests()[0]
-        assert "route=users%2F123" in str(request.url) or "route=users/123" in str(request.url)
+        assert "route=users%2F123" in str(request.url) or "route=users/123" in str(
+            request.url
+        )
 
     def test_match_route_not_found(self, client: RinconClient, httpx_mock: HTTPXMock):
         httpx_mock.add_response(

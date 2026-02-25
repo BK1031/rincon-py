@@ -1,5 +1,4 @@
 import pytest
-from pytest_httpx import HTTPXMock
 
 from rincon import RinconClient
 

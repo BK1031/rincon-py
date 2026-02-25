@@ -83,9 +83,7 @@ class RinconClient:
                 f"Failed to connect to Rincon at {self._base_url}"
             ) from exc
         except httpx.TimeoutException as exc:
-            raise RinconConnectionError(
-                f"Request to Rincon timed out: {path}"
-            ) from exc
+            raise RinconConnectionError(f"Request to Rincon timed out: {path}") from exc
 
         self._raise_for_status(resp)
         return resp
@@ -252,7 +250,9 @@ class RinconClient:
                     self.register_service(self._service)  # type: ignore[arg-type]
                     logger.debug("Heartbeat sent for %s", self._service.name)  # type: ignore[union-attr]
                 except Exception:
-                    logger.warning("Heartbeat failed for %s", self._service.name, exc_info=True)  # type: ignore[union-attr]
+                    logger.warning(
+                        "Heartbeat failed for %s", self._service.name, exc_info=True
+                    )  # type: ignore[union-attr]
                 self._heartbeat_stop_event.wait(interval)
 
         self._heartbeat_thread = threading.Thread(
