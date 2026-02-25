@@ -5,6 +5,8 @@ from rincon import (
     RinconAuthError,
     RinconClient,
     RinconConnectionError,
+    RinconConflictError,
+    RinconError,
     RinconNotFoundError,
     RinconValidationError,
 )
@@ -190,8 +192,10 @@ class TestHighLevelRegistration:
         route = Route(route="/users", method="GET,POST", service_name="")
         result = client.register(svc, routes=[route])
         assert result.id == 820522
-        assert client._service is not None
-        assert len(client._routes) == 1
+        assert client.is_registered
+        assert client.service is not None
+        assert client.service.name == "service_a"
+        assert len(client.routes) == 1
 
     def test_deregister(self, client: RinconClient, httpx_mock: HTTPXMock):
         httpx_mock.add_response(
@@ -212,5 +216,67 @@ class TestHighLevelRegistration:
         )
         client.register(svc)
         client.deregister()
-        assert client._service is None
-        assert client._routes == []
+        assert not client.is_registered
+        assert client.service is None
+        assert client.routes == []
+
+    def test_deregister_without_registration_raises(self, client: RinconClient):
+        with pytest.raises(RinconError, match="No service registered"):
+            client.deregister()
+
+
+class TestProperties:
+    def test_initial_state(self, client: RinconClient):
+        assert client.service is None
+        assert client.routes == []
+        assert not client.is_registered
+
+    def test_routes_returns_copy(self, client: RinconClient, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            url="http://localhost:10311/rincon/services",
+            method="POST",
+            json=SAMPLE_SERVICE,
+        )
+        httpx_mock.add_response(
+            url="http://localhost:10311/rincon/routes",
+            method="POST",
+            json=SAMPLE_ROUTE,
+        )
+        svc = Service(
+            name="Service A",
+            version="1.0.0",
+            endpoint="http://localhost:8080",
+            health_check="http://localhost:8080/health",
+        )
+        route = Route(route="/users", method="GET,POST", service_name="")
+        client.register(svc, routes=[route])
+        routes = client.routes
+        routes.clear()
+        assert len(client.routes) == 1
+
+
+class TestErrorHandling:
+    def test_conflict_error(self, client: RinconClient, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            url="http://localhost:10311/rincon/routes",
+            method="POST",
+            status_code=500,
+            json={"message": "route overlaps with existing routes"},
+        )
+        route = Route(route="/users", method="GET", service_name="service_a")
+        with pytest.raises(RinconConflictError, match="overlaps"):
+            client.register_route(route)
+
+    def test_unknown_status_code(self, client: RinconClient, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            url="http://localhost:10311/rincon/ping",
+            status_code=503,
+            json={"message": "Service unavailable"},
+        )
+        with pytest.raises(RinconError) as exc_info:
+            client.ping()
+        assert exc_info.value.status_code == 503
+
+    def test_heartbeat_without_registration_raises(self, client: RinconClient):
+        with pytest.raises(RinconError, match="No service registered"):
+            client.start_heartbeat()

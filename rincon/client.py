@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import threading
-import time
 
 import httpx
 
@@ -37,6 +36,18 @@ class RinconClient:
         self._routes: list[Route] = []
         self._heartbeat_thread: threading.Thread | None = None
         self._heartbeat_stop_event = threading.Event()
+
+    @property
+    def service(self) -> Service | None:
+        return self._service
+
+    @property
+    def routes(self) -> list[Route]:
+        return list(self._routes)
+
+    @property
+    def is_registered(self) -> bool:
+        return self._service is not None
 
     def close(self) -> None:
         self.stop_heartbeat()
