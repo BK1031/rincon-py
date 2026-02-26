@@ -24,21 +24,25 @@ jobs:
 
   unit:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: pip install -e ".[dev]"
+          python-version: |
+            3.10
+            3.11
+            3.12
+            3.13
 
       - name: Unit tests
-        run: pytest tests/test_models.py tests/test_client.py -v
+        run: |
+          for ver in 3.10 3.11 3.12 3.13; do
+            echo "::group::Python $ver"
+            python$ver -m pip install -e ".[dev]"
+            python$ver -m pytest tests/test_models.py tests/test_client.py -v
+            echo "::endgroup::"
+          done
 
   integration:
     runs-on: ubuntu-latest
@@ -56,10 +60,11 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: pip install -e ".[dev]"
+          python-version: |
+            3.10
+            3.11
+            3.12
+            3.13
 
       - name: Wait for Rincon
         run: |
@@ -69,4 +74,10 @@ jobs:
           done
 
       - name: Integration tests
-        run: pytest tests/test_integration.py -v
+        run: |
+          for ver in 3.10 3.11 3.12 3.13; do
+            echo "::group::Python $ver"
+            python$ver -m pip install -e ".[dev]"
+            python$ver -m pytest tests/test_integration.py -v
+            echo "::endgroup::"
+          done
