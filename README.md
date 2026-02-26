@@ -1,14 +1,26 @@
 # rincon-py
 
-Python client library for [Rincon](https://github.com/BK1031/Rincon), a lightweight, cloud-native service registry.
+[![PyPI](https://img.shields.io/pypi/v/rincon)](https://pypi.org/project/rincon/)
+[![CI](https://github.com/BK1031/rincon-py/actions/workflows/test.yml/badge.svg)](https://github.com/BK1031/rincon-py/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Installation
+rincon-py is a client library for accessing the [Rincon](https://github.com/BK1031/Rincon) API.
+
+## Getting Started
+
+### Prerequisites
+
+rincon-py requires [Python](https://www.python.org/) version 3.10 or above.
+
+### Installing
+
+Install from PyPI with pip:
 
 ```bash
 pip install rincon
 ```
 
-## Quick Start
+### Usage
 
 ```python
 from rincon import RinconClient, Service, Route
@@ -49,50 +61,12 @@ with RinconClient("http://localhost:10311") as client:
     # ...
 ```
 
-## API Reference
+## Contributing
 
-### Client
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement". Don't forget to give the project a star! Thanks again!
 
-```python
-RinconClient(url, auth_user="admin", auth_password="admin", timeout=10.0)
-
-client.service      -> Service | None   # Currently registered service
-client.routes       -> list[Route]      # Currently registered routes
-client.is_registered -> bool
-```
-
-### Services
-
-```python
-client.ping() -> Ping
-client.get_all_services() -> list[Service]
-client.get_services_by_name(name) -> list[Service]
-client.get_service_by_id(service_id) -> Service
-client.register_service(service) -> Service
-client.remove_service(service_id) -> None
-```
-
-### Routes
-
-```python
-client.get_all_routes() -> list[Route]
-client.get_routes_for_service(service_name) -> list[Route]
-client.get_route(route, *, method=None, service=None) -> Route
-client.get_routes_by_path(route) -> list[Route]
-client.register_route(route) -> Route
-```
-
-### Matching
-
-```python
-client.match_route(route, method) -> Service
-```
-
-### Registration & Heartbeat
-
-```python
-client.register(service, routes=None) -> Service
-client.deregister() -> None
-client.start_heartbeat(interval=10.0) -> None
-client.stop_heartbeat() -> None
-```
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b gh-username/my-amazing-feature`)
+3. Commit your Changes (`git commit -m 'Add my amazing feature'`)
+4. Push to the Branch (`git push origin gh-username/my-amazing-feature`)
+5. Open a Pull Request
