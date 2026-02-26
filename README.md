@@ -4,7 +4,7 @@
 [![CI](https://github.com/BK1031/rincon-py/actions/workflows/test.yml/badge.svg)](https://github.com/BK1031/rincon-py/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-rincon-py is a client library for accessing the [Rincon](https://github.com/BK1031/Rincon) API.
+rincon-py is a client library for accessing the [Rincon API](https://github.com/BK1031/Rincon).
 
 ## Getting Started
 
