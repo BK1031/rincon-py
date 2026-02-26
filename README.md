@@ -1,8 +1,8 @@
 # rincon-py
 
-Python client for the Rincon service registry.
+Python client library for [Rincon](https://github.com/BK1031/Rincon), a lightweight, cloud-native service registry.
 
-## Install
+## Installation
 
 ```bash
 pip install rincon
@@ -13,35 +13,37 @@ pip install rincon
 ```python
 from rincon import RinconClient, Service, Route
 
-client = RinconClient("http://localhost:8080")
+client = RinconClient("http://localhost:10311")
 
+# Register a service with routes
 service = Service(
     name="my-service",
     version="1.0.0",
     endpoint="http://localhost:5000",
-    health_check="/health",
+    health_check="http://localhost:5000/health",
 )
-
 routes = [
-    Route(route="/api/users", method="GET", service_name="my-service"),
-    Route(route="/api/users", method="POST", service_name="my-service"),
+    Route(route="/api/users", method="GET", service_name=""),
+    Route(route="/api/users", method="POST", service_name=""),
 ]
+client.register(service, routes)
 
-try:
-    client.register(service, routes)
-    client.start_heartbeat(interval=10.0)
+# Start client heartbeat to keep registration alive
+client.start_heartbeat(interval=10.0)
 
-    matched = client.match_route("/api/users", "GET")
-    print(matched.endpoint)
-finally:
-    client.deregister()
-    client.close()
+# Discover services by route
+matched = client.match_route("/api/users", "GET")
+print(f"{matched.name} @ {matched.endpoint}")
+
+# Cleanup
+client.deregister()
+client.close()
 ```
 
-Or use the context manager:
+The client also supports context managers for automatic cleanup:
 
 ```python
-with RinconClient("http://localhost:8080") as client:
+with RinconClient("http://localhost:10311") as client:
     client.register(service, routes)
     client.start_heartbeat()
     # ...
@@ -49,54 +51,48 @@ with RinconClient("http://localhost:8080") as client:
 
 ## API Reference
 
-### Constructor
+### Client
 
 ```python
 RinconClient(url, auth_user="admin", auth_password="admin", timeout=10.0)
+
+client.service      -> Service | None   # Currently registered service
+client.routes       -> list[Route]      # Currently registered routes
+client.is_registered -> bool
 ```
 
 ### Services
 
 ```python
+client.ping() -> Ping
 client.get_all_services() -> list[Service]
-client.get_services_by_name(name: str) -> list[Service]
-client.get_service_by_id(service_id: int) -> Service
-client.register_service(service: Service) -> Service
-client.remove_service(service_id: int) -> None
+client.get_services_by_name(name) -> list[Service]
+client.get_service_by_id(service_id) -> Service
+client.register_service(service) -> Service
+client.remove_service(service_id) -> None
 ```
 
 ### Routes
 
 ```python
 client.get_all_routes() -> list[Route]
-client.get_routes_for_service(service_name: str) -> list[Route]
-client.get_route(route: str, *, method: str | None = None, service: str | None = None) -> Route
-client.get_routes_by_path(route: str) -> list[Route]
-client.register_route(route: Route) -> Route
+client.get_routes_for_service(service_name) -> list[Route]
+client.get_route(route, *, method=None, service=None) -> Route
+client.get_routes_by_path(route) -> list[Route]
+client.register_route(route) -> Route
 ```
 
 ### Matching
 
 ```python
-client.match_route(route: str, method: str) -> Service
+client.match_route(route, method) -> Service
 ```
 
-### High-Level Registration
+### Registration & Heartbeat
 
 ```python
-client.register(service: Service, routes: list[Route] | None = None) -> Service
+client.register(service, routes=None) -> Service
 client.deregister() -> None
-```
-
-### Heartbeat
-
-```python
-client.start_heartbeat(interval: float = 10.0) -> None
+client.start_heartbeat(interval=10.0) -> None
 client.stop_heartbeat() -> None
-```
-
-### Ping
-
-```python
-client.ping() -> Ping
 ```
