@@ -9,7 +9,7 @@ description = "Python client library for the Rincon service registry"
 requires-python = ">=3.10"
 license = "MIT"
 authors = [
-    { name = "Bharat Kathi", email = "bk1031dev@gmail.com" },
+    { name = "Bharat Kathi", email = "bharat1031@gmail.com" },
 ]
 keywords = ["rincon", "service-registry", "service-discovery", "microservices"]
 classifiers = [
