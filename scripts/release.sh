@@ -1,14 +1,17 @@
 #!/bin/bash
 
-if [ $# -eq 0 ]; then
-  echo "Usage: $0 <version>"
+if ! command -v gh &> /dev/null; then
+  echo "GitHub CLI (gh) is not installed. Please install it to proceed."
   exit 1
 fi
 
-version=$1
+current_version=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+echo "Current version: $current_version"
 
-if ! command -v gh &> /dev/null; then
-  echo "GitHub CLI (gh) is not installed. Please install it to proceed."
+read -p "New version: " version
+
+if [ -z "$version" ]; then
+  echo "Version cannot be empty."
   exit 1
 fi
 
